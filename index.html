@@ -1,0 +1,260 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Star Warp</title>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    
+    <script src="../pixi/pixi.js"></script>
+    <script>
+        const app = new PIXI.Application({
+            autoResize: true,
+            resolution: devicePixelRatio,
+            powerPreference: "high-performance"
+        });
+        app.loader
+            .add('./src/fighter.json')
+            .load(onAssetsLoaded);
+
+        let center = {};
+        let size = {};
+        size.x = 3000;
+        size.y = 3000;
+        center.x = size.x / 2;
+        center.y = size.y / 2;
+        document.body.appendChild(app.view);
+        // const graphics = new PIXI.Graphics();
+        // graphics.beginFill(0xfff);
+        // graphics.drawRect(center.x, center.y, 1, 1);
+        // graphics.endFill();
+  
+        let centerPoint = document.createElement('div');
+        centerPoint.style.width = `${window.innerWidth}px`;
+        centerPoint.style.height = `${window.innerHeight}px`;
+        // centerPoint.style.backgroundColor = 'white';
+        centerPoint.style.position = 'absolute';
+        centerPoint.style.zIndex = '9999';
+        centerPoint.style.opacity = 0;
+         let topValue = 35;
+        let leftValue = 30;
+        centerPoint.style.top = `${topValue}%`;
+        centerPoint.style.left = `${leftValue}%`;
+        document.body.appendChild(centerPoint);
+        // centerPoint.scrollTo();
+        // Add it to the stage
+        // app.stage.addChild(graphics);
+        //graphics.scrollIntoView(); 
+        window.addEventListener('resize', resize);
+        function resize() {
+	        app.renderer.resize(size.x,  size.y);
+        }
+
+        resize();
+        //console.log("view.height", app.view.height);
+        //console.log("view.width", app.view.width);
+        // Get the texture for rope.
+        const starTexture = PIXI
+            .Texture
+            .from('./src/images/star.png');
+
+        const starAmount = 1000;
+        let cameraZ = 500;
+        const fov = 20;
+        const baseSpeed = 0.025;
+        let speed = 0;
+        let warpSpeed = 0;
+        const starStretch = 5;
+        const starBaseSize = 0.05;
+
+        // Create the stars
+        const stars = [];
+        for (let i = 0; i < starAmount; i++) {
+            const star = {
+                sprite: new PIXI.Sprite(starTexture),
+                z: 0,
+                x: 0,
+                y: 0
+            };
+            star.sprite.anchor.x = 0.5;
+            star.sprite.anchor.y = 0.7;
+            randomizeStar(star, true);
+            app
+                .stage
+                .addChild(star.sprite);
+            stars.push(star);
+        }
+
+        function randomizeStar(star, initial) {
+            star.z = initial
+                ? Math.random() * 2000
+                : cameraZ + Math.random() * 1000 + 2000;
+
+            // Calculate star positions with radial random coordinate so no star hits the camera.
+            const deg = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 50 + 1;
+            star.x = Math.cos(deg) * distance;
+            star.y = Math.sin(deg) * distance;
+        }
+        let degRotate3dLR = 0;
+        let valueRotate3dLR = ``;
+        let degRotate3dUD = 0;
+        let valueRotate3dUD = ``;
+
+        window.addEventListener("mousedown", function(event) {
+            // if (event.keyCode == 32)
+            warpSpeed = 1;
+        }, false);
+        window.addEventListener("mouseup", function(event) {
+            // if (event.keyCode == 32)
+            warpSpeed = 0;
+        }, false);
+        window.addEventListener("touchstart", function(event) {
+            // if (event.keyCode == 32)
+            warpSpeed = 1;
+        }, false);
+        window.addEventListener("touchend", function(event) {
+            // if (event.keyCode == 32)
+            warpSpeed = 0;
+        }, false);
+     
+   
+        window.addEventListener("keydown", function(event) {
+             if (event.keyCode == 37) {
+                moveLeft();
+                // leftValue -= 1;
+                // centerPoint.style.left = `${leftValue}%`;
+                // centerPoint.scrollIntoView();
+                // degRotate3dLR -= 1; 
+                // valueRotate3dLR = `rotateY(${degRotate3dLR}deg)`;
+                // document.body.style.transform = "rotate3d(1, 1, 1, 45deg);";
+                // console.log("degRotate3dLR", degRotate3dLR);
+                // console.log("valueRotate3dLR", valueRotate3dLR);
+             }
+        }, false);
+        window.addEventListener("keydown", function(event) {
+             if (event.keyCode == 39) {
+                leftValue += 1;
+                centerPoint.style.left = `${leftValue}%`;
+                centerPoint.scrollIntoView();
+                // degRotate3dLR += 1; 
+                // valueRotate3dLR = `rotateZ(${degRotate3dLR}deg)`;
+                // document.body.style.transform = valueRotate3dLR;
+                // console.log("valueRotate3dLR", valueRotate3dLR);
+                // console.log("valueRotate3dLR", valueRotate3dLR);
+             }
+        }, false);
+        window.addEventListener("keydown", function(event) {
+             if (event.keyCode == 38) {
+                topValue -= 1;
+                centerPoint.style.top = `${topValue}%`;
+                centerPoint.scrollIntoView();
+                // degRotate3dUD += 1; 
+                // valueRotate3dUD = `rotateX(${degRotate3dUD}deg)`;
+                // document.body.style.transform = valueRotate3dUD;
+                // console.log("degRotate3dUD", degRotate3dUD);
+                // console.log("valueRotate3dUD", valueRotate3dUD);
+             }
+        }, false);
+        window.addEventListener("keydown", function(event) {
+             if (event.keyCode == 40) {
+                topValue += 1;
+                centerPoint.style.top = `${topValue}%`;
+                centerPoint.scrollIntoView();
+                // degRotate3dUD -= 1; 
+                // valueRotate3dUD = `rotateX(${degRotate3dUD}deg)`;
+                // document.body.style.transform = valueRotate3dUD;
+                // console.log("degRotate3dUD", degRotate3dUD);
+                // console.log("valueRotate3dUD", valueRotate3dUD);
+             }
+        }, false);
+        // Change flight speed every 5 seconds
+        // setInterval(() => {
+        //     warpSpeed = warpSpeed > 0
+        //         ? 0
+        //         : 1;
+        // }, 5000);
+
+        // Listen for animate update 
+        let dataAnchor = {
+            x: 0.5,
+            y: 0.5
+        };
+         moveLeft=()=> {
+            dataAnchor.x += 0.1
+            dataAnchor.y += 0.1
+            anim.anchor.set(dataAnchor.x, dataAnchor.y);
+        };
+        app
+            .ticker
+            .add((delta) => {
+                // Simple easing. This should be changed to proper easing function when used for real.
+                speed += (warpSpeed - speed) / 20;
+                cameraZ += delta * 10 * (speed + baseSpeed);
+                //console.log("cameraZ",cameraZ)
+                for (let i = 0; i < starAmount; i++) {
+                    const star = stars[i];
+                    if (star.z < cameraZ) 
+                        randomizeStar(star);
+                    
+                    // Map star 3d position to 2d with really simple projection
+                    const z = star.z - cameraZ;
+                    star.sprite.x = star.x * (fov / z) * app.renderer.screen.width + app.renderer.screen.width / 2;
+                    star.sprite.y = star.y * (fov / z) * app.renderer.screen.width + app.renderer.screen.height / 2;
+
+                    // Calculate star scale & rotation.
+                    const dxCenter = star.sprite.x - app.renderer.screen.width / 2;
+                    const dyCenter = star.sprite.y - app.renderer.screen.height / 2;
+                    const distanceCenter = Math.sqrt(dxCenter * dxCenter + dyCenter + dyCenter);
+                    const distanceScale = Math.max(0, (2000 - z) / 2000);
+                    star.sprite.scale.x = distanceScale * starBaseSize;
+                    // Star is looking towards center so that y axis is towards center.
+                    // Scale the star depending on how fast we are moving, what the stretchfactor is and depending on how far away it is from the center.
+                    star.sprite.scale.y = distanceScale * starBaseSize + distanceScale * speed * starStretch * distanceCenter / app.renderer.screen.width;
+                    star.sprite.rotation = Math.atan2(dyCenter, dxCenter) + Math.PI / 2;
+                }
+            });
+            
+
+function onAssetsLoaded() {
+    // create an array of textures from an image path
+    const frames = [];
+
+    for (let i = 0; i < 30; i++) {
+        const val = i < 10 ? `0${i}` : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        frames.push(PIXI.Texture.from(`rollSequence00${val}.png`));
+    }
+
+    // create an AnimatedSprite (brings back memories from the days of Flash, right ?)
+    const anim = new PIXI.AnimatedSprite(frames);
+
+    /*
+     * An AnimatedSprite inherits all the properties of a PIXI sprite
+     * so you can change its position, its anchor, mask it, etc
+     */
+    anim.x = app.screen.width / 2;
+    anim.y = app.screen.height / 2;
+    anim.anchor.set(0.5, 0.5);
+    // anim.rotation = 0;
+    // anim.angle = 1;
+    anim.animationSpeed = 0.5;
+    anim.play();
+
+    app.stage.addChild(anim);
+
+    app.ticker.add(() => {
+        anim.rotation += 0.01;
+    });
+}
+            centerPoint.scrollIntoView();
+    </script>
+</body>
